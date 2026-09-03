@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EPHIC PROP FIRM - Dashboard</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',sans-serif;background:#0b0e11;color:#fff;min-height:100vh;padding:20px}
+        .container{width:100%;max-width:600px;margin:auto}
+        .card{background:linear-gradient(145deg,#12122a,#1a1a3e);border-radius:24px;padding:32px;border:1px solid rgba(255,255,255,0.06);box-shadow:0 25px 80px rgba(0,0,0,0.8);margin-bottom:16px}
+        .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+        .header h1{color:#f0b90b;font-size:20px}
+        .header .logout{color:#ff4444;cursor:pointer;font-size:13px}
+        .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:16px 0}
+        .stat{background:rgba(255,255,255,0.04);padding:14px;border-radius:12px;text-align:center}
+        .stat .number{font-size:22px;font-weight:700;color:#f0b90b}
+        .stat .label{font-size:10px;color:#8899bb;text-transform:uppercase;margin-top:2px}
+        .balance-box{background:rgba(255,255,255,0.04);padding:20px;border-radius:16px;text-align:center;margin:16px 0}
+        .balance-box .amount{font-size:34px;font-weight:800;color:#4caf50}
+        .balance-box .label{color:#8899bb;font-size:13px}
+        .btn{width:100%;padding:14px;background:linear-gradient(135deg,#f0b90b,#f9a13a);border:none;border-radius:12px;color:#000;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.3s;margin-top:8px}
+        .btn:hover{transform:translateY(-2px)}
+        .btn-secondary{background:rgba(255,255,255,0.06);color:#fff}
+        .btn-secondary:hover{background:rgba(255,255,255,0.1)}
+        .trade-item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+        .trade-item .pair{color:#e0e0e0}
+        .trade-item .profit{color:#4caf50}
+        .trade-item .loss{color:#ff4444}
+        .footer{text-align:center;margin-top:16px;color:#445566;font-size:11px}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <div class="header">
+            <h1>📊 Dashboard</h1>
+            <span class="logout" onclick="alert('Logged out')">Logout</span>
+        </div>
+
+        <div class="stats">
+            <div class="stat"><div class="number" id="balance">$10,000</div><div class="label">Balance</div></div>
+            <div class="stat"><div class="number" id="equity">$10,250</div><div class="label">Equity</div></div>
+            <div class="stat"><div class="number" id="drawdown">2.5%</div><div class="label">Drawdown</div></div>
+        </div>
+
+        <div class="balance-box">
+            <div class="label">💰 Available Balance</div>
+            <div class="amount" id="availBalance">$10,250.00</div>
+        </div>
+
+        <button class="btn" onclick="alert('Challenge started!')">🚀 Start Challenge</button>
+        <button class="btn btn-secondary" onclick="alert('Payout requested!')">💰 Request Payout</button>
+
+        <div style="margin-top:16px">
+            <h3 style="color:#8899bb;font-size:14px;margin-bottom:8px">📈 Recent Trades</h3>
+            <div id="tradeList">
+                <div class="trade-item"><span class="pair">EURUSD</span><span class="profit">+$120</span></div>
+                <div class="trade-item"><span class="pair">GBPUSD</span><span class="profit">+$85</span></div>
+                <div class="trade-item"><span class="pair">USDJPY</span><span class="loss">-$45</span></div>
+            </div>
+        </div>
+    </div>
+    <div class="footer">© 2026 EPHIC PROP FIRM • Dashboard v1.0</div>
+</div>
+<script>
+// Update stats with random data
+setInterval(() => {
+    const balance = (10000 + Math.random() * 200 - 100).toFixed(0);
+    const equity = (parseFloat(balance) + Math.random() * 100 - 50).toFixed(0);
+    const drawdown = (Math.random() * 5).toFixed(1);
+    document.getElementById('balance').textContent = '$' + balance;
+    document.getElementById('equity').textContent = '$' + equity;
+    document.getElementById('drawdown').textContent = drawdown + '%';
+    document.getElementById('availBalance').textContent = '$' + parseFloat(equity).toFixed(2);
+}, 5000);
+console.log('📊 Dashboard loaded');
+</script>
+</body>
+</html>
