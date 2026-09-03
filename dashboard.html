@@ -27,7 +27,12 @@
         .trade-item .pair{color:#e0e0e0}
         .trade-item .profit{color:#4caf50}
         .trade-item .loss{color:#ff4444}
+        .challenge-item{background:rgba(255,255,255,0.04);padding:12px;border-radius:10px;margin:8px 0;border:1px solid rgba(255,255,255,0.04)}
+        .challenge-item .status-active{color:#4caf50}
+        .challenge-item .status-completed{color:#f0b90b}
+        .challenge-item .status-failed{color:#ff4444}
         .footer{text-align:center;margin-top:16px;color:#445566;font-size:11px}
+        .username-display{color:#8899bb;font-size:14px;margin-bottom:8px}
     </style>
 </head>
 <body>
@@ -35,46 +40,119 @@
     <div class="card">
         <div class="header">
             <h1>📊 Dashboard</h1>
-            <span class="logout" onclick="alert('Logged out')">Logout</span>
+            <span class="logout" onclick="logout()">Logout</span>
         </div>
 
+        <div class="username-display" id="usernameDisplay">👤 Loading...</div>
+
         <div class="stats">
-            <div class="stat"><div class="number" id="balance">$10,000</div><div class="label">Balance</div></div>
-            <div class="stat"><div class="number" id="equity">$10,250</div><div class="label">Equity</div></div>
-            <div class="stat"><div class="number" id="drawdown">2.5%</div><div class="label">Drawdown</div></div>
+            <div class="stat"><div class="number" id="balance">$0</div><div class="label">Balance</div></div>
+            <div class="stat"><div class="number" id="equity">$0</div><div class="label">Equity</div></div>
+            <div class="stat"><div class="number" id="drawdown">0%</div><div class="label">Drawdown</div></div>
         </div>
 
         <div class="balance-box">
             <div class="label">💰 Available Balance</div>
-            <div class="amount" id="availBalance">$10,250.00</div>
+            <div class="amount" id="availBalance">$0.00</div>
         </div>
 
-        <button class="btn" onclick="alert('Challenge started!')">🚀 Start Challenge</button>
-        <button class="btn btn-secondary" onclick="alert('Payout requested!')">💰 Request Payout</button>
+        <button class="btn" onclick="buyNewChallenge()">🚀 Buy Challenge</button>
+        <button class="btn btn-secondary" onclick="requestPayout()">💰 Request Payout</button>
 
         <div style="margin-top:16px">
-            <h3 style="color:#8899bb;font-size:14px;margin-bottom:8px">📈 Recent Trades</h3>
-            <div id="tradeList">
-                <div class="trade-item"><span class="pair">EURUSD</span><span class="profit">+$120</span></div>
-                <div class="trade-item"><span class="pair">GBPUSD</span><span class="profit">+$85</span></div>
-                <div class="trade-item"><span class="pair">USDJPY</span><span class="loss">-$45</span></div>
+            <h3 style="color:#8899bb;font-size:14px;margin-bottom:8px">📈 My Challenges</h3>
+            <div id="challengeList">
+                <div style="color:#445566;font-size:13px;text-align:center;padding:16px 0">No challenges yet. Buy one!</div>
             </div>
         </div>
     </div>
     <div class="footer">© 2026 EPHIC PROP FIRM • Dashboard v1.0</div>
 </div>
 <script>
-// Update stats with random data
-setInterval(() => {
-    const balance = (10000 + Math.random() * 200 - 100).toFixed(0);
-    const equity = (parseFloat(balance) + Math.random() * 100 - 50).toFixed(0);
-    const drawdown = (Math.random() * 5).toFixed(1);
+let currentUser = null;
+
+async function loadUser() {
+    const username = localStorage.getItem('ephic_user');
+    if (!username) {
+        window.location.href = '/';
+        return;
+    }
+    
+    try {
+        const res = await fetch(`/api/user/${username}`);
+        const data = await res.json();
+        if (data.status === 'success') {
+            currentUser = data.user;
+            document.getElementById('usernameDisplay').textContent = '👤 ' + username;
+            updateDashboard(currentUser);
+        } else {
+            localStorage.removeItem('ephic_user');
+            window.location.href = '/';
+        }
+    } catch(e) {
+        console.log('Error loading user:', e);
+    }
+}
+
+function updateDashboard(user) {
+    const balance = user.balance || 0;
+    const equity = user.equity || balance;
+    const drawdown = user.drawdown || 0;
+    
     document.getElementById('balance').textContent = '$' + balance;
     document.getElementById('equity').textContent = '$' + equity;
     document.getElementById('drawdown').textContent = drawdown + '%';
-    document.getElementById('availBalance').textContent = '$' + parseFloat(equity).toFixed(2);
-}, 5000);
-console.log('📊 Dashboard loaded');
+    document.getElementById('availBalance').textContent = '$' + equity.toFixed(2);
+    
+    if (user.challenges && user.challenges.length > 0) {
+        const list = document.getElementById('challengeList');
+        list.innerHTML = user.challenges.map(c => `
+            <div class="challenge-item">
+                <div style="display:flex;justify-content:space-between">
+                    <span>💰 $${c.amount}</span>
+                    <span class="status-${c.status}">${c.status.toUpperCase()}</span>
+                </div>
+                <div style="font-size:12px;color:#8899bb;margin-top:4px">
+                    Balance: $${c.balance} | Equity: $${c.equity} | Drawdown: ${c.drawdown}%
+                </div>
+                <div style="font-size:11px;color:#445566;margin-top:2px">${new Date(c.date).toLocaleDateString()}</div>
+            </div>
+        `).join('');
+    }
+}
+
+function logout() {
+    localStorage.removeItem('ephic_user');
+    window.location.href = '/';
+}
+
+function buyNewChallenge() {
+    const amount = prompt('Select challenge size:\n1. $10,000 - $99\n2. $25,000 - $199\n3. $50,000 - $299\n\nEnter 1, 2, or 3:');
+    const sizes = { '1': '10000', '2': '25000', '3': '50000' };
+    const selected = sizes[amount];
+    if (!selected) return;
+    
+    fetch('/api/buy', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ username: currentUser.username, amount: selected })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('✅ Challenge purchased!');
+            loadUser();
+        } else {
+            alert('❌ ' + data.message);
+        }
+    });
+}
+
+function requestPayout() {
+    alert('💰 Payout request submitted! Processing time: 24-48 hours.');
+}
+
+loadUser();
 </script>
 </body>
 </html>
