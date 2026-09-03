@@ -30,15 +30,15 @@
         .auth-form input:focus{outline:none;border-color:#f0b90b}
         .auth-form .btn-auth{width:48%;padding:12px;background:#f0b90b;border:none;border-radius:10px;color:#000;font-weight:700;cursor:pointer;margin:4px 1%}
         .auth-form .btn-auth:hover{background:#d4a00a}
+        .auth-form .btn-auth-secondary{width:48%;padding:12px;background:rgba(255,255,255,0.06);border:none;border-radius:10px;color:#fff;font-weight:600;cursor:pointer;margin:4px 1%}
+        .auth-form .btn-auth-secondary:hover{background:rgba(255,255,255,0.1)}
         .footer{text-align:center;margin-top:24px;color:#445566;font-size:12px}
         .status{margin-top:12px;padding:12px;border-radius:10px;text-align:center;font-size:13px;display:none}
         .status.success{display:block;background:rgba(0,200,83,0.15);color:#00e676}
         .status.error{display:block;background:rgba(255,23,68,0.15);color:#ff1744}
         .status.loading{display:block;background:rgba(107,76,255,0.15);color:#6b4cff}
-        .dashboard-link{color:#f0b90b;text-decoration:none;font-weight:600;cursor:pointer}
-        .dashboard-link:hover{text-decoration:underline}
         .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-        .nav a{color:#8899bb;text-decoration:none;font-size:13px}
+        .nav a{color:#8899bb;text-decoration:none;font-size:13px;cursor:pointer}
         .nav a:hover{color:#f0b90b}
     </style>
 </head>
@@ -48,8 +48,8 @@
         <div class="nav">
             <span style="color:#f0b90b;font-weight:700">🏦 EPHIC</span>
             <div>
-                <a href="#" onclick="showAuth('login')">Login</a>
-                <a href="#" onclick="showAuth('register')" style="margin-left:12px">Register</a>
+                <a onclick="showAuth('login')">Login</a>
+                <a onclick="showAuth('register')" style="margin-left:12px">Register</a>
                 <a href="/dashboard" style="margin-left:12px">Dashboard</a>
             </div>
         </div>
@@ -65,14 +65,14 @@
                 <input type="text" id="loginUsername" placeholder="Username">
                 <input type="password" id="loginPassword" placeholder="Password">
                 <button class="btn-auth" onclick="login()">Login</button>
-                <button class="btn-auth" onclick="showAuth('register')">Register</button>
+                <button class="btn-auth-secondary" onclick="showAuth('register')">Register</button>
             </div>
             <div id="registerForm" style="display:none">
                 <input type="text" id="regUsername" placeholder="Username">
                 <input type="email" id="regEmail" placeholder="Email">
                 <input type="password" id="regPassword" placeholder="Password">
                 <button class="btn-auth" onclick="register()">Create Account</button>
-                <button class="btn-auth" onclick="showAuth('login')">Back to Login</button>
+                <button class="btn-auth-secondary" onclick="showAuth('login')">Back to Login</button>
             </div>
             <div id="status" class="status"></div>
         </div>
@@ -111,7 +111,7 @@
             <p>Daily loss limit • Max drawdown protection</p>
         </div>
 
-        <button class="btn" onclick="alert('🚀 Coming Soon!')">Get Funded</button>
+        <button class="btn" onclick="showAuth('login')">Get Funded</button>
 
         <div class="footer">© 2026 EPHIC PROP FIRM • Forex Trading</div>
     </div>
@@ -152,6 +152,7 @@ async function login() {
         const data = await res.json();
         
         if (data.status === 'success') {
+            localStorage.setItem('ephic_user', username);
             setStatus('✅ Login successful!', 'success');
             setTimeout(() => window.location.href = '/dashboard', 1000);
         } else {
@@ -183,6 +184,7 @@ async function register() {
         const data = await res.json();
         
         if (data.status === 'success') {
+            localStorage.setItem('ephic_user', username);
             setStatus('✅ ' + data.message, 'success');
             setTimeout(() => window.location.href = '/dashboard', 1000);
         } else {
@@ -199,8 +201,21 @@ function buyChallenge(amount) {
         setStatus('⚠️ Please login first', 'error');
         return;
     }
-    alert(`🎯 Challenge ${amount} purchased! Redirecting to dashboard...`);
-    window.location.href = '/dashboard';
+    
+    fetch('/api/buy', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ username: user, amount: amount })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('✅ Challenge purchased!');
+            window.location.href = '/dashboard';
+        } else {
+            alert('❌ ' + data.message);
+        }
+    });
 }
 
 console.log('🏦 EPHIC PROP FIRM loaded');
